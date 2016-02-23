@@ -1,0 +1,24 @@
+{
+	"name": "questwork/orm",
+	"description": "Object Relational Mapping for PHP",
+	"keywords": ["questwork", "orm"],
+	"type": "library",
+	"homepage": "https://github.com/tiepnguyen/orm",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Tiep Nguyen",
+			"email": "tiep@tiep.info",
+			"homepage": "https://tiep.info"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0",
+		"questwork/dbo": "dev-master"
+	},
+	"autoload": {
+		"psr-4": {
+			"Questwork\\": "src/Questwork/"
+		}
+	}
+}
