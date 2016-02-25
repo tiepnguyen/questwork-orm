@@ -28,10 +28,13 @@ class Collection implements IteratorAggregate, Interfaces\Collection
 		return new ArrayIterator($this->data);
     }
 
-	public function load($fields = '*', $order = NULL, $limit = NULL)
+	public function load($fields = NULL, $order = NULL, $limit = NULL)
 	{
+		if (is_null($fields)) {
+			$fields = $this->instance->getPrimary();
+		}
 		$attr = $this->attribute();
-		$result = $this->connect()->select($attr['table'], $fields, $this->property, $order, $limit);
+		$result = $this->connect()->select($fields, $attr['table'], $this->property, $order, $limit);
 		$class = get_class($this->instance);
 		foreach ($result as $item) {
 			array_push($this->data, new $class($item, TRUE));

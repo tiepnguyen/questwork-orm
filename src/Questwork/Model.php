@@ -52,9 +52,11 @@ class Model implements Interfaces\Model
         return $this;
     }
 
-    public function load($fields = '*')
+    public function load($fields = NULL)
     {
-        if (is_array($fields)) {
+        if (is_null($fields)) {
+            $fields = static::$primary;
+        } elseif (is_array($fields)) {
             $fields = implode(', ', $fields);
         }
         $command = "
@@ -141,7 +143,7 @@ class Model implements Interfaces\Model
 
     public static function collection($property = [])
     {
-        $class = get_called_class();
-        return new Collection(new $class, $property);
+        $className = get_called_class();
+        return new Collection(new $className, $property);
     }
 }
