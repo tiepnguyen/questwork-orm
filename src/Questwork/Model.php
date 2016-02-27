@@ -64,16 +64,16 @@ class Model implements Interfaces\Model
             " . static::$table;
         if ($this->{static::$primary}) {
             $command .= " WHERE " . static::$primary . " = :" . static::$primary;
-            $result = $this->connect()->prepare($command, [static::$primary => $this->{static::$primary}]);
+            $result = $this->connect()->query($command, [static::$primary => $this->{static::$primary}]);
         } elseif (!empty($properties = $this->toArray($this))) {
             $condition = [];
             foreach ($properties as $key => $value) {
                 array_push($condition, $key . " = :" . $key);
             }
             $command .= " WHERE " . implode(' AND ', $condition);
-            $result = $this->connect()->prepare($command, $properties);
+            $result = $this->connect()->query($command, $properties);
         }
-        if ($result) {
+        if ($result->rowCount()) {
             $this->_loaded = TRUE;
             $result->setFetchMode(\PDO::FETCH_INTO, $this);
             $result->fetch();
@@ -95,7 +95,7 @@ class Model implements Interfaces\Model
 
     public function delete()
     {
-        $result = $this->connect()->delete($static::$table, [$static::$primary => $this->{$static::$primary}]);
+        $result = $this->connect()->delete(static::$table, [static::$primary => $this->{static::$primary}]);
         return $result;
     }
 
@@ -145,5 +145,20 @@ class Model implements Interfaces\Model
     {
         $className = get_called_class();
         return new Collection(new $className, $property);
+    }
+
+    public static function find($condition = [], $order = NULL, $limit = NULL)
+    {
+        return self::collection($condition)->load(NULL, $order, $limit)->toArray();
+    }
+
+    public static function findOne($condition)
+    {
+        $result = self::instance($condition)->load();
+        if ($result->isLoaded()) {
+            return $result;
+        } else {
+            return NULL;
+        }
     }
 }
