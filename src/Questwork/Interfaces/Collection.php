@@ -7,7 +7,7 @@ interface Collection
 
 	public function load($fields, $order, $limit);
 
-	public function update($data);
+	public function save($data);
 
 	public function delete();
 

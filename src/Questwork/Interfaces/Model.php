@@ -9,8 +9,6 @@ interface Model
 
 	public function delete();
 
-	public function connect();
-
 	public function getAttribute($key);
 
 	public function getTable();
@@ -20,6 +18,8 @@ interface Model
 	public function isLoaded();
 
 	public function toArray();
+
+	public static function connect();
 
 	public static function instance($data);
 

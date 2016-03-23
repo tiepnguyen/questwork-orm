@@ -33,7 +33,7 @@ class Model implements Interfaces\Model
         return (string) $this->{static::$primary};
     }
 
-    public function property($key = NULL, $value = NULL)
+    public function set($key = NULL, $value = NULL)
     {
         if (is_array($key)) {
             foreach ($key as $prop => $value) {
@@ -64,14 +64,14 @@ class Model implements Interfaces\Model
             " . static::$table;
         if ($this->{static::$primary}) {
             $command .= " WHERE " . static::$primary . " = :" . static::$primary;
-            $result = $this->connect()->query($command, [static::$primary => $this->{static::$primary}]);
+            $result = static::connect()->query($command, [static::$primary => $this->{static::$primary}]);
         } elseif (!empty($properties = $this->toArray($this))) {
             $condition = [];
             foreach ($properties as $key => $value) {
                 array_push($condition, $key . " = :" . $key);
             }
             $command .= " WHERE " . implode(' AND ', $condition);
-            $result = $this->connect()->query($command, $properties);
+            $result = static::connect()->query($command, $properties);
         }
         if ($result->rowCount()) {
             $this->_loaded = TRUE;
@@ -83,26 +83,22 @@ class Model implements Interfaces\Model
 
     public function save()
     {
-        if ($this->isLoaded()) {
+        if ($this->isLoaded() || isset($this->{static::$primary})) {
             $updateData = $this->toArray();
             unset($updateData[static::$primary]);
-            $result = $this->connect()->update(static::$table, $updateData, [static::$primary => $this->{static::$primary}]);
+            $result = static::connect()->update(static::$table, $updateData, [static::$primary => $this->{static::$primary}]);
         } else {
-            $result = $this->connect()->insert(static::$table, $this->toArray());
+            $result = static::connect()->insert(static::$table, $this->toArray());
+            $this->{static::$primary} = static::connect()->lastInsertId();
+            $this->_loaded = TRUE;
         }
-        return $result;
+        return $result ? $this : FALSE;
     }
 
     public function delete()
     {
-        $result = $this->connect()->delete(static::$table, [static::$primary => $this->{static::$primary}]);
+        $result = static::connect()->delete(static::$table, [static::$primary => $this->{static::$primary}]);
         return $result;
-    }
-
-    public function connect()
-    {
-        trigger_error('Connect method of ' . get_called_class() . ' is not implemented');
-        throw new Exception('Connect method of ' . get_called_class() . ' is not implemented');
     }
 
     public function getAttribute($key = NULL)
@@ -122,7 +118,7 @@ class Model implements Interfaces\Model
 
     public function primary()
     {
-        return $this->connect()->primary(static::$table);
+        return static::connect()->primary(static::$table);
     }
 
     public function isLoaded()
@@ -135,10 +131,16 @@ class Model implements Interfaces\Model
         return json_decode(json_encode($this), TRUE);
     }
 
-    public static function instance($data = [])
+    public static function connect()
+    {
+        trigger_error('Connect method of ' . get_called_class() . ' is not implemented');
+        throw new Exception('Connect method of ' . get_called_class() . ' is not implemented');
+    }
+
+    public static function instance($data = [], $loaded = FALSE)
     {
         $className = get_called_class();
-        return new $className($data);
+        return new $className($data, $loaded);
     }
 
     public static function collection($property = [])
